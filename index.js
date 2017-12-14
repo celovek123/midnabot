@@ -3,21 +3,18 @@ const debug = require('debug')('midnabot')
 
 const Telegraf = require('telegraf')
 
+const { core } = require('./lib/core')
 const { configs, sequelize } = require('./lib/modules')
-const { request, response, after } = require('./lib/middlewares')
-const { start, sandbox, roll, about, stop } = require('./lib/commands')
+const { sandbox, roll, about } = require('./lib/commands')
 
 const bot = new Telegraf(configs.token, { username: configs.username })
-sequelize.sync().then(() => debug(`Database connected`))
+sequelize.sync({ force: true }).then(() => debug(`Database connected`))
 
-bot.use(request())
-bot.use(response())
-bot.command('start', start())
-bot.use(after())
-bot.command('sandbox', sandbox())
-bot.command('roll', roll())
-bot.command('about', about())
-bot.command('stop', stop())
+bot
+  .use(core())
+  .command('sandbox', sandbox())
+  .command('roll', roll())
+  .command('about', about())
 
 const production = () => {
   debug(`${configs.username} setting webhook: ${configs.webhook}`)
